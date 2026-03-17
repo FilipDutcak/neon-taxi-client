@@ -5,12 +5,22 @@ import {
 } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { X, Plane, Building2, Palmtree, Calendar, Clock, Users, Wallet, MessageSquare, Car, Minus, Plus } from 'lucide-react-native';
+import { 
+  X, Plane, Building2, Palmtree, Calendar, Clock, Users, 
+  Wallet, MessageSquare, Car, Minus, Plus, CreditCard, Receipt 
+} from 'lucide-react-native';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBI6qe6kMaDwfgEDfXhgJrUHqnBERofF98';
+
+// Definiramo dostupne načine plaćanja
+const PAYMENT_METHODS = [
+  { id: 'cash', label: 'Gotovina', icon: Wallet, color: '#34C759' },
+  // { id: 'card', label: 'Kartica', icon: CreditCard, color: '#007AFF' }, // Za budućnost
+  // { id: 'room', label: 'Na sobu', icon: Building2, color: '#5856D6' }, // Za budućnost
+];
 
 interface OrderModalProps {
   onClose: () => void;
@@ -33,26 +43,13 @@ export default function OrderModal({ onClose, clientInfo, onSuccess }: OrderModa
   const [passengers, setPassengers] = useState(1);
   const [notes, setNotes] = useState('');
   const [date, setDate] = useState(new Date());
+  const [paymentMethod, setPaymentMethod] = useState('cash'); // Defaultno gotovina
+  
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showPaymentPicker, setShowPaymentPicker] = useState(false);
 
   const destRef = useRef<any>(null);
-
-  // FUNKCIJA ZA RUČNO DOHVAĆANJE KOORDINATA (za brze gumbe)
-  const getCoordsFromAddress = async (address: string) => {
-    try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
-      );
-      const json = await response.json();
-      if (json.results && json.results.length > 0) {
-        const { lat, lng } = json.results[0].geometry.location;
-        setCoords({ lat, lng });
-      }
-    } catch (error) {
-      console.error("Geocoding error: ", error);
-    }
-  };
 
   const handleOrder = async () => {
     if (!destination || !coords) {
@@ -63,7 +60,6 @@ export default function OrderModal({ onClose, clientInfo, onSuccess }: OrderModa
     setLoading(true);
 
     try {
-      // DOHVAT TRENUTNOG KORISNIKA (Operatera koji je prijavljen)
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Nije pronađen prijavljeni operater.");
 
@@ -92,9 +88,8 @@ export default function OrderModal({ onClose, clientInfo, onSuccess }: OrderModa
             ? `[Vozilo ${i + 1}/${numVehicles}] ${notes}`.trim() 
             : notes,
           status,
-          payment_method: 'cash',
-          created_by: user.id // Automatsko dodjeljivanje operatera
-          // uid polje se ovdje ne šalje jer ga generira Supabase Trigger
+          payment_method: paymentMethod, // Dinamički odabran način plaćanja
+          created_by: user.id
         });
       }
 
@@ -112,6 +107,8 @@ export default function OrderModal({ onClose, clientInfo, onSuccess }: OrderModa
     }
   };
 
+  const currentPayment = PAYMENT_METHODS.find(m => m.id === paymentMethod) || PAYMENT_METHODS[0];
+  const PaymentIcon = currentPayment.icon;
   const commonHitSlop = { top: 10, bottom: 10, left: 10, right: 10 };
 
   return (
@@ -218,6 +215,7 @@ export default function OrderModal({ onClose, clientInfo, onSuccess }: OrderModa
           </View>
 
           <View style={styles.row}>
+            {/* Putnici - Stepper */}
             <View style={[styles.infoBtn, { backgroundColor: theme.card, borderColor: theme.border, flex: 1.2 }]}>
               <Users size={18} color={theme.accent} />
               <View style={styles.stepper}>
@@ -230,10 +228,19 @@ export default function OrderModal({ onClose, clientInfo, onSuccess }: OrderModa
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={[styles.infoBtn, { backgroundColor: theme.card, borderColor: theme.border, opacity: 0.7 }]}>
-              <Wallet size={18} color={theme.accent} />
-              <Text style={{ color: theme.text, fontWeight: '600' }}>Gotovina</Text>
-            </View>
+
+            {/* Plaćanje - Birač (Pripremljen) */}
+            <TouchableOpacity 
+              style={[styles.infoBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => {
+                // Za sada samo obavijest jer imamo samo jedan izbor, 
+                // kasnije ovdje otvaraš BottomSheet ili novi Modal
+                Alert.alert("Način plaćanja", "Trenutno je dostupno samo plaćanje gotovinom.");
+              }}
+            >
+              <PaymentIcon size={18} color={currentPayment.color} />
+              <Text style={{ color: theme.text, fontWeight: '600' }}>{currentPayment.label}</Text>
+            </TouchableOpacity>
           </View>
 
           {passengers > 4 && (
@@ -273,6 +280,7 @@ export default function OrderModal({ onClose, clientInfo, onSuccess }: OrderModa
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* Date Pickers... */}
       {showDatePicker && (
         <DateTimePicker 
           value={date} 
@@ -302,9 +310,6 @@ const styles = StyleSheet.create({
   searchSection: { paddingHorizontal: 20, paddingTop: 15, paddingBottom: 10 },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 5 },
   label: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
-  quickRow: { flexDirection: 'row', gap: 10, marginBottom: 25, marginTop: 10 },
-  quickBtn: { flex: 1, padding: 12, borderRadius: 12, borderWidth: 1, alignItems: 'center', gap: 6 },
-  quickText: { fontSize: 10, fontWeight: '700' },
   row: { flexDirection: 'row', gap: 10, marginBottom: 15 },
   infoBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 15, borderRadius: 15, borderWidth: 1 },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 12 },

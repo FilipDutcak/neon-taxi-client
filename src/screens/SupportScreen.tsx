@@ -14,11 +14,12 @@ import {
   Phone, 
   Mail, 
   MessageCircle, 
+  MessagesSquare, // Nova ikona za Chat
   Clock, 
   ShieldCheck, 
   ChevronRight,
   ExternalLink,
-  ArrowLeft // Dodana ikona za povratak
+  ArrowLeft 
 } from 'lucide-react-native';
 import { useTheme } from '../context/ThemeContext';
 import { APP_VERSION, SUPPORT_EMAIL, SUPPORT_PHONE, WORKING_HOURS } from '../constants/Info';
@@ -34,7 +35,7 @@ export default function SupportScreen({ navigation }: any) {
     Linking.openURL(`whatsapp://send?phone=${SUPPORT_PHONE}&text=${encodeURIComponent(msg)}`);
   };
 
-  const SupportCard = ({ icon: Icon, title, value, onPress, color }: any) => (
+  const SupportCard = ({ icon: Icon, title, value, onPress, color, badge }: any) => (
     <TouchableOpacity 
       style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
       onPress={onPress}
@@ -44,7 +45,14 @@ export default function SupportScreen({ navigation }: any) {
         <Icon size={22} color={color} />
       </View>
       <View style={styles.cardContent}>
-        <Text style={[styles.cardTitle, { color: theme.textSecondary }]}>{title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={[styles.cardTitle, { color: theme.textSecondary }]}>{title}</Text>
+          {badge && (
+            <View style={[styles.badge, { backgroundColor: theme.accent + '20' }]}>
+              <Text style={[styles.badgeText, { color: theme.accent }]}>{badge}</Text>
+            </View>
+          )}
+        </View>
         <Text style={[styles.cardValue, { color: theme.text }]}>{value}</Text>
       </View>
       <ChevronRight size={18} color={theme.divider} />
@@ -64,7 +72,7 @@ export default function SupportScreen({ navigation }: any) {
       </TouchableOpacity>
 
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 20 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 70, paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
@@ -80,6 +88,16 @@ export default function SupportScreen({ navigation }: any) {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Brzi kontakt</Text>
           
+          {/* Novi Chat Gumb */}
+          <SupportCard 
+            icon={MessagesSquare} 
+            title="Chat uživo" 
+            value="Započni razgovor" 
+            onPress={() => navigation.navigate('Soon')}
+            color="#AF52DE"
+            badge="USKORO"
+          />
+
           <SupportCard 
             icon={Phone} 
             title="Telefon" 
@@ -122,7 +140,6 @@ export default function SupportScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  // Novi stil za back button
   backButton: {
     position: 'absolute',
     left: 20,
@@ -176,6 +193,17 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   cardValue: { fontSize: 16, fontWeight: '800', marginTop: 2 },
   
+  // Novi stilovi za badge
+  badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+  },
+
   infoBox: { 
     flexDirection: 'row', 
     alignItems: 'center', 

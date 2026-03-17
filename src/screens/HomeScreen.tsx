@@ -16,7 +16,13 @@ import { Plus, Car, Bell, MapPin, ChevronRight, Navigation, Timer, UserCheck, Pl
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 
+// Importi za modal i verziju
 import OrderModal from '../components/OrderModal';
+import InfoModal from '../components/InfoModal';
+import { APP_VERSION } from '../constants/Info';
+
+// Varijabla izvan komponente koja traje dok je aplikacija u memoriji
+let hasShownBetaNotice = false;
 
 export default function HomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -27,9 +33,17 @@ export default function HomeScreen({ navigation }: any) {
   const [activeRides, setActiveRides] = useState<any[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   
-  const [clientInfo, setClientInfo] = useState({ name: '', id: '', address: '' });
+  // State za Beta obavijest
+  const [isBetaModalVisible, setIsBetaModalVisible] = useState(false);
+  
+  const [clientInfo, setClientInfo] = useState({ 
+    name: '', 
+    id: '', 
+    address: '', 
+    lat: undefined as number | undefined, 
+    lng: undefined as number | undefined 
+  });
 
-  // Statusi usklađeni s bazom podataka (lowercase)
   const statusMap: Record<string, { label: string, color: string, icon: any, bg: string }> = {
     pending: { label: 'Traženje vozača', color: '#FF9500', icon: Timer, bg: '#FFF9F0' },
     accepted: { label: 'Vozač prihvatio', color: '#5856D6', icon: UserCheck, bg: '#F5F5FF' },
@@ -50,6 +64,14 @@ export default function HomeScreen({ navigation }: any) {
 
   useEffect(() => {
     fetchInitialData();
+    
+    // Provjera za prikaz Beta obavijesti samo jednom u sesiji
+    if (!hasShownBetaNotice) {
+      setTimeout(() => {
+        setIsBetaModalVisible(true);
+        hasShownBetaNotice = true;
+      }, 800); // Mala odgoda radi boljeg UX-a
+    }
   }, []);
 
   useEffect(() => {
@@ -82,7 +104,13 @@ export default function HomeScreen({ navigation }: any) {
           .single();
         
         if (client) {
-          setClientInfo({ id: client.id, name: client.name, address: client.address });
+          setClientInfo({ 
+            id: client.id, 
+            name: client.name, 
+            address: client.address, 
+            lat: client.lat, 
+            lng: client.lng 
+          });
           fetchActiveRides(client.id);
         }
       }
@@ -114,7 +142,6 @@ export default function HomeScreen({ navigation }: any) {
 
   async function fetchUnreadCount(clientId = clientInfo.id) {
     if (!clientId) return;
-    // Ovdje možete dodati query za broj nepročitanih notifikacija
   }
 
   return (
@@ -122,7 +149,6 @@ export default function HomeScreen({ navigation }: any) {
       styles.container, 
       { 
         backgroundColor: theme.background,
-        // Popravak: Koristimo insets.top za oba sustava, uz minimalni fallback
         paddingTop: insets.top > 0 ? insets.top : (Platform.OS === 'android' ? 25 : 0)
       }
     ]}>
@@ -232,6 +258,7 @@ export default function HomeScreen({ navigation }: any) {
         </ScrollView>
       </View>
 
+      {/* MODAL ZA NARUČIVANJE */}
       <Modal visible={isModalVisible} animationType="slide" presentationStyle="pageSheet">
         <OrderModal 
           onClose={() => setIsModalVisible(false)} 
@@ -243,6 +270,16 @@ export default function HomeScreen({ navigation }: any) {
           }}
         />
       </Modal>
+
+      {/* MODAL ZA BETA OBAVIJEST */}
+      <InfoModal
+        visible={isBetaModalVisible}
+        type="warning"
+        title="Beta Verzija"
+        description={`Aplikacija je trenutno u fazi testiranja (v${APP_VERSION}). Moguće su povremene poteškoće u radu. Hvala na razumijevanju!`}
+        onClose={() => setIsBetaModalVisible(false)}
+        primaryButtonText="Razumijem"
+      />
     </View>
   );
 }

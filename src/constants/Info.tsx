@@ -1,5 +1,5 @@
-export const APP_VERSION = "0.0.1";
-export const APP_BUILD = "1";
+export const APP_VERSION = "0.1.2_beta.2";
+export const APP_BUILD = "2";
 export const APP_NAME = "NEON Taxi";
 export const COMPANY_NAME_FULL = "DETAILY, obrt za usluge, vl. Filip Dutčak";
 export const COMPANY_NAME_MID = "DETAILY, obrt za usluge";

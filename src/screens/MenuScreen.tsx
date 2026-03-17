@@ -214,7 +214,7 @@ export default function MenuScreen() {
           <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>PODRŠKA</Text>
           <View style={[styles.group, { backgroundColor: theme.card, borderColor: theme.border }]}>
             {renderSettingItem(HelpCircle, "Pomoć i podrška", "Kontaktiraj nas", () => navigation.navigate('Support'))}
-            {renderSettingItem(ShieldCheck, "Pravila privatnosti", "Kako štitimo vaše podatke", () => navigation.navigate('Soon'))}
+            {renderSettingItem(ShieldCheck, "Pravne informacije", "Dolazi uskoro", () => navigation.navigate('Soon'))}
             {renderSettingItem(Info, "O aplikaciji", "Verzija i informacije", () => navigation.navigate('About'))}
           </View>
         </View>
