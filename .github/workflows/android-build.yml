@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Rješava Node 20 upozorenje
     steps:
       - name: 🏗 Checkout
         uses: actions/checkout@v4
@@ -13,7 +15,7 @@ jobs:
       - name: ⚙️ Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24 # Prebacujemo na najnoviji stabilni Node
           cache: 'npm'
 
       - name: 🏗 Setup EAS
@@ -23,7 +25,8 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
-        run: npm install
+        # Koristimo ci (clean install) za GitHub Actions jer je brži i sigurniji
+        run: npm ci || npm install 
 
       - name: 🚀 Build APK
         run: eas build --platform android --profile preview --non-interactive
