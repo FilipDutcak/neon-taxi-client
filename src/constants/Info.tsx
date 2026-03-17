@@ -1,0 +1,10 @@
+export const APP_VERSION = "0.1.2_beta.2";
+export const APP_BUILD = "2";
+export const APP_NAME = "NEON Taxi";
+export const COMPANY_NAME_FULL = "DETAILY, obrt za usluge, vl. Filip Dutčak";
+export const COMPANY_NAME_MID = "DETAILY, obrt za usluge";
+export const COMPANY_NAME_SHORT = "DETAILY";
+export const VERSION_TYPE = "PRIVATNI DEMO";
+export const SUPPORT_EMAIL = "support@detaily.hr";
+export const SUPPORT_PHONE = "+385 91 9737 150";
+export const WORKING_HOURS = "Pon - Ned: 0-24"
